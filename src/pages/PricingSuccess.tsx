@@ -26,17 +26,17 @@ const PricingSuccess = () => {
         const res = await api.post('/payment/vip/success', { token });
         
         if (res.data.success) {
-          // Update user info from backend to get latest VIP status
+          // Cập nhật thông tin người dùng từ phía sau để có trạng thái VIP mới nhất
           try {
             const userRes = await api.get('/auth/me');
             if (userRes.data.success && userRes.data.data) {
               // Update user in context and localStorage
               updateUser(userRes.data.data);
-              console.log('User data updated:', userRes.data.data);
+              console.log('Đã cập nhật dữ liệu người dùng:', userRes.data.data);
             }
           } catch (userErr) {
             console.error('Không thể lấy dữ liệu người dùng:', userErr);
-            // Still show success even if user fetch fails
+            // Vẫn hiển thị thành công ngay cả khi người dùng không tải được
           }
           
           setSuccess(true);

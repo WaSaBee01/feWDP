@@ -20,7 +20,7 @@ const Pricing = () => {
             updateUser(userRes.data.data);
           }
         } catch (err) {
-          console.error('Failed to refresh user data:', err);
+          console.error('Không làm mới được dữ liệu người dùng:', err);
         }
       }
     };

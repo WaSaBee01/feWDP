@@ -19,11 +19,10 @@ interface PlanItem {
     caloriesOut: number;
   };
 }
-
-interface PlanItemMeal { time: string; meal: string }
-interface PlanItemExercise { time: string; exercise: string }
 interface Meal { _id: string; name: string; calories: number; carbs: number; protein: number; fat: number }
 interface Exercise { _id: string; name: string; caloriesBurned: number }
+interface PlanItemMeal { time: string; meal: string }
+interface PlanItemExercise { time: string; exercise: string }
 
 const PlanLibrary = () => {
   const { user } = useAuth();
@@ -44,9 +43,9 @@ const PlanLibrary = () => {
   });
   
   // AI Plan Generation states
+    const [showAIDialog, setShowAIDialog] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [generatingAI, setGeneratingAI] = useState(false);
-  const [showAIDialog, setShowAIDialog] = useState(false);
   const [aiGeneratedPlan, setAiGeneratedPlan] = useState<{
     name: string;
     description?: string;

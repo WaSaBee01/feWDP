@@ -15,9 +15,9 @@ const Settings = () => {
   const [bmi, setBmi] = useState<number | null>(null);
   const [bmr, setBmr] = useState<number | null>(null);
   const [workoutDays, setWorkoutDays] = useState(3);
-  const [workoutDuration, setWorkoutDuration] = useState(60);
   const [age, setAge] = useState<number | ''>('');
   const [allergies, setAllergies] = useState<string>('');
+  const [workoutDuration, setWorkoutDuration] = useState(60);
   const [fitnessLevel, setFitnessLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
   const [gender, setGender] = useState<'male' | 'female'>('male');
 

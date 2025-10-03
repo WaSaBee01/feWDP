@@ -20,20 +20,20 @@ interface PlanItem {
   };
 }
 
-interface Meal { _id: string; name: string; calories: number; carbs: number; protein: number; fat: number }
-interface Exercise { _id: string; name: string; caloriesBurned: number }
 interface PlanItemMeal { time: string; meal: string }
 interface PlanItemExercise { time: string; exercise: string }
+interface Meal { _id: string; name: string; calories: number; carbs: number; protein: number; fat: number }
+interface Exercise { _id: string; name: string; caloriesBurned: number }
 
 const PlanLibrary = () => {
   const { user } = useAuth();
-  const [items, setItems] = useState<PlanItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
   const [filterIsCommon, setFilterIsCommon] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<PlanItem | null>(null);
   const [viewingItem, setViewingItem] = useState<PlanItem | null>(null);
+  const [items, setItems] = useState<PlanItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
   const [meals, setMeals] = useState<Meal[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [formData, setFormData] = useState({
@@ -44,9 +44,9 @@ const PlanLibrary = () => {
   });
   
   // AI Plan Generation states
-  const [showAIDialog, setShowAIDialog] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [generatingAI, setGeneratingAI] = useState(false);
+  const [showAIDialog, setShowAIDialog] = useState(false);
   const [aiGeneratedPlan, setAiGeneratedPlan] = useState<{
     name: string;
     description?: string;
@@ -73,7 +73,7 @@ const PlanLibrary = () => {
       setMeals(mealsRes.data.data);
       setExercises(exRes.data.data);
     } catch {
-      toast.error('Không thể tải danh sách kế hoạch. Vui long thử lại.');
+      toast.error('Không thể tải danh sách kế hoạch. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -85,13 +85,13 @@ const PlanLibrary = () => {
 
   const handleDelete = async (id: string, isCommon: boolean) => {
     if (isCommon) {
-      toast.error('Không thể xóa kế hoạch này');
+      toast.error('Không thể xóa kế hoạch này. Hãy thử lại');
       return;
     }
     if (!confirm('Bạn có chắc muốn xóa kế hoạch này?')) return;
     try {
       await api.delete(`/user/plans/${id}`);
-      toast.success('Xóa kế hoạch thành công');
+      toast.success('Xóa kế hoạch thành công kế hoạch');
       load();
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa kế hoạch';
@@ -136,6 +136,29 @@ const PlanLibrary = () => {
     'Kế hoạch tập luyện và ăn uống để giữ dáng, cân bằng calo',
   ];
 
+    const handleAIAccept = async () => {
+    if (!aiGeneratedPlan) return;
+
+    try {
+      setAcceptingAI(true);
+      const res = await api.post('/user/plans/ai/accept', aiGeneratedPlan);
+      
+      if (res.data.success) {
+        toast.success('Đã tạo kế hoạch thành công!');
+        setShowAIDialog(false);
+        setAiPrompt('');
+        setAiGeneratedPlan(null);
+        load();
+      } else {
+        toast.error('Không thể tạo kế hoạch. Hãy thử lại');
+      }
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể tạo kế hoạch';
+      toast.error(message);
+    } finally {
+      setAcceptingAI(false);
+    }
+  };
   const handleAIGenerate = async () => {
     if (!aiPrompt.trim()) {
       toast.error('Bạn vui lòng nhập yêu cầu');
@@ -168,29 +191,7 @@ const PlanLibrary = () => {
     }
   };
 
-  const handleAIAccept = async () => {
-    if (!aiGeneratedPlan) return;
 
-    try {
-      setAcceptingAI(true);
-      const res = await api.post('/user/plans/ai/accept', aiGeneratedPlan);
-      
-      if (res.data.success) {
-        toast.success('Đã tạo kế hoạch thành công!');
-        setShowAIDialog(false);
-        setAiPrompt('');
-        setAiGeneratedPlan(null);
-        load();
-      } else {
-        toast.error('Không thể tạo kế hoạch');
-      }
-    } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể tạo kế hoạch';
-      toast.error(message);
-    } finally {
-      setAcceptingAI(false);
-    }
-  };
   const startEdit = async (pl: PlanItem) => {
     if (pl.isCommon) { toast.error('Không thể chỉnh sửa kế hoạch dùng chung'); return; }
     
@@ -220,7 +221,6 @@ const PlanLibrary = () => {
         }
       }
       
-      // Chuyển đổi meals từ object (populated) sang ID string
       const convertedMeals: PlanItemMeal[] = (planData.meals || []).map((item) => {
         let mealId = '';
         const mealValue = item.meal;

@@ -77,7 +77,6 @@ const EditDayModal = ({
 
   if (!isOpen || !selectedDate) return null;
 
-  // Check if date is in the past
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const selectedDateOnly = new Date(selectedDate);
@@ -104,7 +103,7 @@ const EditDayModal = ({
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-700">
                 ⚠️ Không thể chỉnh sửa progress cho ngày trong quá khứ. Vui lòng
-                chọn ngày hôm nay hoặc tương lai.
+                chọn bây giờ hoặc tương lai.
               </p>
             </div>
           )}
@@ -244,7 +243,7 @@ const EditDayModal = ({
                 onChange={(e) => onNotesChange(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 rows={3}
-                placeholder="Thêm ghi chú cho ngày này..."
+                placeholder="Hãy thêm ghi chú cho ngày này..."
               />
             </div>
 

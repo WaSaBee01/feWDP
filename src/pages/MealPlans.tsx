@@ -27,9 +27,9 @@ interface MealPlan {
 }
 
 const MealPlans = () => {
-  const [mealPlans, setMealPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [mealPlans, setMealPlans] = useState<any[]>([]);
   const [editingPlan, setEditingPlan] = useState<MealPlan | null>(null);
   const [allMeals, setAllMeals] = useState<Meal[]>([]);
 
@@ -61,20 +61,7 @@ const MealPlans = () => {
     loadMealPlans();
     loadAllMeals();
   }, []);
-
-  const loadMealPlans = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/meal-plans');
-      setMealPlans(response.data.data);
-    } catch (error: any) {
-      toast.error('Không thể tải kế hoạch ăn uống');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAllMeals = async () => {
+ const loadAllMeals = async () => {
     try {
       const response = await api.get('/meals');
       setAllMeals(response.data.data);
@@ -82,6 +69,19 @@ const MealPlans = () => {
       console.error('Failed to load meals');
     }
   };
+  const loadMealPlans = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/meal-plans');
+      setMealPlans(response.data.data);
+    } catch (error: any) {
+      toast.error('Không thể tải kế hoạch ăn uống. ');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+ 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,7 +100,7 @@ const MealPlans = () => {
           ...formData,
           meals: mealsData,
         });
-        toast.success('Cập nhật kế hoạch thành công !');
+        toast.success('Đã cập nhật kế hoạch thành công!');
       } else {
         await api.post('/meal-plans', {
           ...formData,
@@ -114,10 +114,22 @@ const MealPlans = () => {
       resetForm();
       loadMealPlans();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
+      toast.error(error.response?.data?.message || 'Đã có lỗi xảy ra');
     }
   };
 
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Bạn có chắc muốn xóa kế hoạch này?')) return;
+
+    try {
+      await api.delete(`/meal-plans/${id}`);
+      toast.success('Xóa kế hoạch thành công');
+      loadMealPlans();
+    } catch (error: any) {
+      toast.error('Không thể xóa kế hoạch! Hãy thử lại.');
+    }
+  };
   const handleEdit = (plan: any) => {
     setEditingPlan(plan);
     setFormData({
@@ -134,18 +146,6 @@ const MealPlans = () => {
       }),
     });
     setShowForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc muốn xóa kế hoạch này?')) return;
-
-    try {
-      await api.delete(`/meal-plans/${id}`);
-      toast.success('Xóa kế hoạch thành công');
-      loadMealPlans();
-    } catch (error: any) {
-      toast.error('Không thể xóa kế hoạch !');
-    }
   };
 
   const resetForm = () => {

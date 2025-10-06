@@ -45,12 +45,12 @@ const WeeklyPlanLibrary = () => {
   const [items, setItems] = useState<WeeklyPlanItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
-  const [formData, setFormData] = useState({ name: '', description: '', days: {} as Record<string, string> });
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<WeeklyPlanItem | null>(null);
   const [filterIsCommon, setFilterIsCommon] = useState<string>('all');
   const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
   const [viewingItem, setViewingItem] = useState<WeeklyPlanItem | null>(null);
+  const [formData, setFormData] = useState({ name: '', description: '', days: {} as Record<string, string> });
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<WeeklyPlanItem | null>(null);
   // AI Plan Generation states
   const [aiPrompt, setAiPrompt] = useState('');
   const [generatingAI, setGeneratingAI] = useState(false);
@@ -101,7 +101,7 @@ const WeeklyPlanLibrary = () => {
       toast.error('Không thể xóa kế hoạch dùng chung. Hãy thử lại');
       return;
     }
-    if (!confirm('Bạn có chắc muốn xóa kế hoạch tuần này?')) return;
+    if (!confirm('Bạn muốn xóa kế hoạch tuần này?')) return;
     try {
       await api.delete(`/user/weekly-plans/${id}`);
       toast.success('Xóa kế hoạch tuần thành công');
@@ -154,14 +154,14 @@ const WeeklyPlanLibrary = () => {
       setGeneratingAI(true);
       // Increase timeout to 5 minutes for weekly plan AI generation (more complex)
       const res = await api.post('/user/weekly-plans/ai/generate', { prompt: aiPrompt }, {
-        timeout: 300000, // 5 minutes
+        timeout: 300000, 
       });
       
       if (res.data.success && res.data.data) {
         setAiGeneratedPlan(res.data.data);
         toast.success('Tạo kế hoạch tuần thành công!');
       } else {
-        toast.error('Không thể tạo kế hoạch với AI');
+        toast.error('Không thể tạo kế hoạch với AI. Hãy thử lại');
       }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; code?: string; message?: string };
@@ -191,8 +191,8 @@ const WeeklyPlanLibrary = () => {
         convertedDays[key] = String((dayValue as DailyPlan)._id);
       }
     });
-    setEditing(wp);
     setShowForm(true);
+    setEditing(wp);
     setFormData({ name: wp.name, description: stripHtml(wp.description), days: convertedDays });
   };
 
@@ -204,7 +204,7 @@ const WeeklyPlanLibrary = () => {
       const res = await api.post('/user/weekly-plans/ai/accept', aiGeneratedPlan);
       
       if (res.data.success) {
-        toast.success('Đã tạo kế hoạch tuần thành công!');
+        toast.success('Tạo kế hoạch thành công!');
         setShowAIDialog(false);
         setAiPrompt('');
         setAiGeneratedPlan(null);

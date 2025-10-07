@@ -51,7 +51,7 @@ const PlanManagement = () => {
       setMeals(mealsRes.data.data);
       setExercises(exRes.data.data);
     } catch {
-      toast.error('Không thể tải dữ liệu');
+      toast.error('Cannot load data');
     } finally {
       setLoading(false);
     }

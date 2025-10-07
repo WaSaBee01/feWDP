@@ -82,7 +82,7 @@ const TemplateMealsManagement = () => {
       resetForm();
       loadTemplateMeals();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
+      toast.error(error.response?.data?.message || 'Error');
     }
   };
 

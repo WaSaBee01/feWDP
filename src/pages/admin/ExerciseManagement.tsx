@@ -215,10 +215,10 @@ const ExerciseManagement = () => {
     if (!confirm('Bạn có chắc muốn xóa bài tập này?')) return;
     try {
       await api.delete(`/admin/exercises/${id}`);
-      toast.success('Đã xóa bài tập');
+      toast.success('Delete Sucessfull');
       load();
     } catch {
-      toast.error('Không thể xóa bài tập');
+      toast.error('Cannot Sucessfull');
     }
   };
 

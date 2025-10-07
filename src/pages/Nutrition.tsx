@@ -19,9 +19,10 @@ interface Meal {
 const Nutrition = () => {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
   const [filterGoal, setFilterGoal] = useState<string>('all');
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
+  const [search, setSearch] = useState('');
+
 
   useEffect(() => {
     loadMeals();

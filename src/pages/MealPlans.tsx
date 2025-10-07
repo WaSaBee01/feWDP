@@ -110,9 +110,9 @@ const MealPlans = () => {
       }
 
       setShowForm(false);
-      setEditingPlan(null);
       resetForm();
       loadMealPlans();
+      setEditingPlan(null);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Đã có lỗi xảy ra');
     }
@@ -178,12 +178,11 @@ const MealPlans = () => {
         <p className="text-gray-600">Quản lý thực đơn hàng tuần của bạn</p>
       </div>
 
-      {/* Toolbar */}
       <div className="mb-6">
         <button
           onClick={() => {
-            setShowForm(true);
             setEditingPlan(null);
+            setShowForm(true);
             resetForm();
           }}
           className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all"
@@ -216,7 +215,7 @@ const MealPlans = () => {
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-gray-900">Lên menu cho từng ngày</h4>
+                  <h4 className="font-semibold text-gray-900">Lên Menu cho từng ngày</h4>
                   {days.map((day) => (
                     <div key={day} className="border border-gray-200 rounded-lg p-4">
                       <h5 className="font-medium text-gray-900 mb-3">{dayLabels[day]}</h5>
@@ -238,7 +237,7 @@ const MealPlans = () => {
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
                             >
-                              <option value="">Chọn món...</option>
+                              <option value="">Chọn món....</option>
                               {allMeals.map(meal => (
                                 <option key={meal._id} value={meal._id}>
                                   {meal.name}
@@ -286,12 +285,12 @@ const MealPlans = () => {
       ) : mealPlans.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
           <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-600 mb-4">Chưa có kế hoạch nào</p>
+          <p className="text-gray-600 mb-4">Chưa có kế hoạch nào !</p>
           <button
             onClick={() => setShowForm(true)}
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
           >
-            Tạo kế hoạch đầu tiên
+            Hãy tạo kế hoạch đầu tiên
           </button>
         </div>
       ) : (

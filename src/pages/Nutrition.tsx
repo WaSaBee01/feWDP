@@ -37,7 +37,7 @@ const Nutrition = () => {
       const response = await api.get('/meals', { params });
       setMeals(response.data.data);
     } catch (error: any) {
-      toast.error('Không thể tải danh sách ');
+      toast.error('Không thể tải danh sách. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }

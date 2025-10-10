@@ -49,7 +49,7 @@ const WeeklyPlanManagement = () => {
       setItems(wps.data.data);
       setDailyPlans(dps.data.data);
     } catch {
-      toast.error('Không thể tải dữ liệu');
+      toast.error('Cannot load data');
     } finally { setLoading(false); }
   };
 
@@ -83,7 +83,7 @@ const WeeklyPlanManagement = () => {
       }
       setShowForm(false); setEditing(null); setFormData({ name: '', days: {}, goal: 'healthy_lifestyle' }); setEditorState(EditorState.createEmpty()); loadAll();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Có lỗi xảy ra');
+      toast.error(err.response?.data?.message || 'Error');
     }
   };
 

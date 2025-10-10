@@ -37,7 +37,7 @@ const UsersManagement = () => {
       toast.success(isActive ? 'Đã kích hoạt' : 'Đã vô hiệu hóa');
       load();
     } catch {
-      toast.error('Cập nhật trạng thái thất bại');
+      toast.error('Update failed !');
     }
   };
 

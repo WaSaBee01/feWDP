@@ -203,7 +203,7 @@ const MealPlans = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tuần bắt đầu *
+                    Tuần bắt đầu kế hoạch của bạn *
                   </label>
                   <input
                     type="date"

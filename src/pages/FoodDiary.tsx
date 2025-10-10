@@ -162,7 +162,7 @@ const FoodDiary = () => {
         });
       }
 
-      toast.success('Thêm món ăn thành công');
+      toast.success('Đã thêm món ăn thành công');
       setShowAddForm(false);
       loadDiary();
     } catch (error: any) {

@@ -1,8 +1,8 @@
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 import { Edit2, Loader2, Plus, Search, Sparkles, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useAuth } from '../../contexts/AuthContext';
-import api from '../../services/api';
 
 interface Totals {
   caloriesIn: number;
@@ -45,11 +45,11 @@ const WeeklyPlanLibrary = () => {
   const [items, setItems] = useState<WeeklyPlanItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
-  const [filterIsCommon, setFilterIsCommon] = useState<string>('all');
-  const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
   const [formData, setFormData] = useState({ name: '', description: '', days: {} as Record<string, string> });
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<WeeklyPlanItem | null>(null);
+  const [filterIsCommon, setFilterIsCommon] = useState<string>('all');
+  const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
   const [viewingItem, setViewingItem] = useState<WeeklyPlanItem | null>(null);
   // AI Plan Generation states
   const [aiPrompt, setAiPrompt] = useState('');
@@ -191,8 +191,8 @@ const WeeklyPlanLibrary = () => {
         convertedDays[key] = String((dayValue as DailyPlan)._id);
       }
     });
-    setShowForm(true);
     setEditing(wp);
+    setShowForm(true);
     setFormData({ name: wp.name, description: stripHtml(wp.description), days: convertedDays });
   };
 

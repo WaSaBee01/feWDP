@@ -171,7 +171,7 @@ const FoodDiary = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc muốn xóa món ăn này?')) return;
+    if (!confirm('Bạn có chắc muốn xóa món ăn này không?')) return;
 
     try {
       await api.delete(`/food-diary/entry/${id}`);

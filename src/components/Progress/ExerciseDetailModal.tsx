@@ -281,17 +281,15 @@ const ExerciseDetailModal = ({ exercise, date, exerciseIndex, onClose, onExercis
             },
           });
         } catch (err) {
-          console.error('Error initializing YouTube player:', err);
+          console.error('Error initializing YouTube players:', err);
         }
       } else {
-        // Retry after a short delay if API not ready
         setTimeout(initPlayer, 100);
       }
     };
 
-    // Wait for YouTube API to load
     let retryCount = 0;
-    const maxRetries = 50; // 5 seconds max wait time
+    const maxRetries = 50; 
     
     const checkAndInit = () => {
       if (window.YT && window.YT.Player) {
@@ -300,7 +298,7 @@ const ExerciseDetailModal = ({ exercise, date, exerciseIndex, onClose, onExercis
         retryCount++;
         setTimeout(checkAndInit, 100);
       } else {
-        // Fallback: set up callback for when API loads (in case it loads later)
+       
         window.onYouTubeIframeAPIReady = initPlayer;
       }
     };
@@ -308,7 +306,6 @@ const ExerciseDetailModal = ({ exercise, date, exerciseIndex, onClose, onExercis
     checkAndInit();
 
     return () => {
-      // Cleanup interval
       if (progressIntervalRef.current !== null) {
         clearInterval(progressIntervalRef.current);
         progressIntervalRef.current = null;

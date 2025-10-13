@@ -174,7 +174,7 @@ const MealPlans = () => {
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Kế hoạch ăn uống</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Kế hoạch ăn uống của bạn</h2>
         <p className="text-gray-600">Quản lý thực đơn hàng tuần của bạn</p>
       </div>
 

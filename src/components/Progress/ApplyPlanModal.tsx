@@ -137,7 +137,7 @@ const ApplyPlanModal = ({ isOpen, onClose, dailyPlans, weeklyPlans, onSuccess }:
                 onChange={(e) => setSelectedPlanId(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
-                <option value="">-- Chọn kế hoạch --</option>
+                <option value="">--- Chọn kế hoạch ---</option>
                 {(applyPlanType === 'daily' ? dailyPlans : weeklyPlans).map((plan) => (
                   <option key={plan._id} value={plan._id}>
                     {plan.name}
@@ -160,7 +160,7 @@ const ApplyPlanModal = ({ isOpen, onClose, dailyPlans, weeklyPlans, onSuccess }:
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Chỉ có thể chọn ngày hôm nay hoặc tương lai
+                  Chỉ có thể chọn ngày hôm nay hoặc ngày trong tương lai
                 </p>
               </div>
             ) : (

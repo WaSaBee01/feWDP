@@ -19,23 +19,24 @@ interface PlanItem {
     caloriesOut: number;
   };
 }
-interface Exercise { _id: string; name: string; caloriesBurned: number }
-interface PlanItemMeal { time: string; meal: string }
+
 interface PlanItemExercise { time: string; exercise: string }
 interface Meal { _id: string; name: string; calories: number; carbs: number; protein: number; fat: number }
-
+interface Exercise { _id: string; name: string; caloriesBurned: number }
+interface PlanItemMeal { time: string; meal: string }
 
 const PlanLibrary = () => {
   const { user } = useAuth();
   const [filterIsCommon, setFilterIsCommon] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState('');
-  const [meals, setMeals] = useState<Meal[]>([]);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [editing, setEditing] = useState<PlanItem | null>(null);
   const [viewingItem, setViewingItem] = useState<PlanItem | null>(null);
   const [items, setItems] = useState<PlanItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [meals, setMeals] = useState<Meal[]>([]);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -73,7 +74,7 @@ const PlanLibrary = () => {
       setMeals(mealsRes.data.data);
       setExercises(exRes.data.data);
     } catch {
-      toast.error('Không thể tải danh sách kế hoạch. Vui lòng thử lại.');
+      toast.error('Không thể tải danh sách. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -88,7 +89,7 @@ const PlanLibrary = () => {
       toast.error('Không thể xóa kế hoạch này. Hãy thử lại');
       return;
     }
-    if (!confirm('Bạn có chắc muốn xóa kế hoạch này?')) return;
+    if (!confirm('Bạn có muốn xóa kế hoạch này?')) return;
     try {
       await api.delete(`/user/plans/${id}`);
       toast.success('Xóa thành công kế hoạch');
@@ -161,7 +162,7 @@ const PlanLibrary = () => {
   };
   const handleAIGenerate = async () => {
     if (!aiPrompt.trim()) {
-      toast.error('Bạn vui lòng nhập yêu cầu');
+      toast.error('Vui lòng nhập yêu cầu');
       return;
     }
 

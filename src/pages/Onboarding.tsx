@@ -5,22 +5,22 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 
 const Onboarding = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   // Form data
   const [goal, setGoal] = useState<'weight_loss' | 'muscle_gain' | 'healthy_lifestyle'>('healthy_lifestyle');
   const [workoutDays, setWorkoutDays] = useState(3);
+  const [age, setAge] = useState<number | ''>('');
+  const [allergies, setAllergies] = useState<string>('');
   const [workoutDuration, setWorkoutDuration] = useState(60);
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [fitnessLevel, setFitnessLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
   const [gender, setGender] = useState<'male' | 'female'>('male');
-  const [age, setAge] = useState<number | ''>('');
-  const [allergies, setAllergies] = useState<string>('');
 
   const [bmr, setBmr] = useState<number | null>(null);
   const [bmi, setBmi] = useState<number | null>(null);
@@ -29,8 +29,8 @@ const Onboarding = () => {
 
   useEffect(() => {
     if (weight && height) {
-      const heightNum = parseFloat(height);
       const weightNum = parseFloat(weight);
+      const heightNum = parseFloat(height);
 
       
       if (weightNum > 0 && heightNum > 0) {
@@ -47,8 +47,8 @@ const Onboarding = () => {
 
 
   useEffect(() => {
-    const heightNum = parseFloat(height || '0');
     const weightNum = parseFloat(weight || '0');
+    const heightNum = parseFloat(height || '0');
     const ageNum = typeof age === 'number' ? age : parseFloat(String(age || '0'));
     if (weightNum > 0 && heightNum > 0 && ageNum > 0) {
       const base = 10 * weightNum + 6.25 * heightNum - 5 * ageNum;
@@ -67,9 +67,9 @@ const Onboarding = () => {
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     setLoading(true);
     setError('');
+    e.preventDefault();
 
     try {
       await api.post('/survey', {
@@ -105,17 +105,18 @@ const Onboarding = () => {
       setLoading(false);
     }
   };
+  const nextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
 
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
-  const nextStep = () => {
-    if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
+
 
     const getBMIColor = (bmiValue: number): string => {
     if (bmiValue < 18.5) return 'text-yellow-600';

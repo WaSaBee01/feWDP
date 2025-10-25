@@ -65,8 +65,8 @@ const ExerciseLibrary = () => {
 
   const getYouTubeEmbedUrl = (url: string): string | null => {
     if (!url) return null;
-    // Extract video ID from various YouTube URL formats
-    // Hỗ trợ URL có query parameters như &list=, &start_radio=, etc.
+    // Trích xuất ID video từ nhiều định dạng URL YouTube
+    // Hỗ trợ URL có tham số truy vấn như &list=, &start_radio=, v.v.
     const patterns = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
       /youtube\.com\/watch\?.*[&?]v=([^&\n?#]+)/,
@@ -139,7 +139,7 @@ const ExerciseLibrary = () => {
       const res = await api.get('/user/exercises', { params });
       setItems(res.data.data);
     } catch {
-      toast.error('Không thể tải danh sách bài tập');
+      toast.error('Danh sách bài tập không tải được');
     } finally {
       setLoading(false);
     }
@@ -206,7 +206,7 @@ const ExerciseLibrary = () => {
 
   const handleEdit = (ex: ExerciseItem) => {
     if (ex.isCommon) {
-      toast.error('Không thể chỉnh sửa bài tập dùng chung');
+      toast.error('Bài tập chung không thể chỉnh sửa');
       return;
     }
     setEditing(ex);
@@ -230,13 +230,13 @@ const ExerciseLibrary = () => {
 
   const handleDelete = async (id: string, isCommon: boolean) => {
     if (isCommon) {
-      toast.error('Không thể xóa bài tập dùng chung');
+      toast.error('Bài tập chung không thể xóa');
       return;
     }
     if (!confirm('Bạn có chắc muốn xóa bài tập này?')) return;
     try {
       await api.delete(`/user/exercises/${id}`);
-      toast.success('Đã xóa bài tập');
+      toast.success('Xóa bài tập thành công');
       load();
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa bài tập';
@@ -250,8 +250,8 @@ const ExerciseLibrary = () => {
       const res = await api.get(`/user/exercises/${exerciseId}/comments`);
       setComments(res.data.data || []);
     } catch (err: unknown) {
-      console.error('Error loading comments:', err);
-      // Don't show error toast, just set empty array
+      console.error('Lỗi tải bình luận:', err);
+      // Không hiển thị thông báo lỗi, chỉ cần đặt mảng trống
       setComments([]);
     } finally {
       setLoadingComments(false);
@@ -260,7 +260,7 @@ const ExerciseLibrary = () => {
 
   const handleSubmitComment = async (exerciseId: string) => {
     if (!commentContent.trim()) {
-      toast.error('Vui lòng nhập nội dung comment');
+      toast.error('Vui lòng nhập nội dung bình luận');
       return;
     }
     try {
@@ -269,7 +269,7 @@ const ExerciseLibrary = () => {
       });
       setComments((prev) => [...prev, res.data.data]);
       setCommentContent('');
-      toast.success('Đã thêm comment thành công');
+      toast.success('Đã thêm bình luận thành công');
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm comment';
       toast.error(message);
@@ -279,7 +279,7 @@ const ExerciseLibrary = () => {
   const handleSubmitReply = async (exerciseId: string, parentCommentId: string) => {
     const replyText = replyContent[parentCommentId];
     if (!replyText || !replyText.trim()) {
-      toast.error('Vui lòng nhập nội dung phản hồi');
+      toast.error('Vui lòng nhập nội dung phản hồi:');
       return;
     }
     try {
@@ -287,7 +287,7 @@ const ExerciseLibrary = () => {
         content: replyText.trim(),
         parentCommentId,
       });
-      // Update comments to add reply to the parent comment
+      // Cập nhật bình luận để thêm trả lời cho bình luận gốc
       setComments((prev) =>
         prev.map((comment) => {
           if (comment._id === parentCommentId) {
@@ -305,7 +305,7 @@ const ExerciseLibrary = () => {
         return newContent;
       });
       setReplyingTo(null);
-      toast.success('Đã thêm phản hồi thành công');
+      toast.success('Đã thêm phản hồi thành công!');
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm phản hồi';
       toast.error(message);
@@ -316,21 +316,21 @@ const ExerciseLibrary = () => {
     if (!confirm('Bạn có chắc muốn xóa comment này?')) return;
     try {
       await api.delete(`/user/exercises/${exerciseId}/comments/${commentId}`);
-      // Remove comment or reply from state
+      // Xóa bình luận hoặc trả lời khỏi trạng thái
       setComments((prev) => {
-        // Check if it's a top-level comment
+        // Kiểm tra xem đó có phải là bình luận cấp cao nhất không
         const commentIndex = prev.findIndex((c) => c._id === commentId);
         if (commentIndex !== -1) {
-          // It's a top-level comment, remove it
+          // Đây là bình luận cấp cao nhất, hãy xóa nó đi
           return prev.filter((c) => c._id !== commentId);
         }
-        // It's a reply, remove it from its parent comment
+        // Đây là một câu trả lời, hãy xóa nó khỏi bình luận gốc
         return prev.map((comment) => ({
           ...comment,
           replies: comment.replies.filter((r) => r._id !== commentId),
         }));
       });
-      toast.success('Đã xóa comment thành công');
+      toast.success('Đã xóa comment thành công!');
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa comment';
       toast.error(message);
@@ -516,7 +516,7 @@ const ExerciseLibrary = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Video hướng dẫn (YouTube)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Video hướng dẫn</label>
                   <input
                     type="url"
                     value={formData.videoUrl}
@@ -666,7 +666,7 @@ const ExerciseLibrary = () => {
                         rel="noreferrer" 
                         className="text-primary-600 hover:underline inline-flex items-center gap-2 mt-2 text-sm"
                       >
-                        Xem trên YouTube →
+                        Xem video →
                       </a>
                     </div>
                   ) : viewingItem.videoUrl ? (
@@ -677,7 +677,7 @@ const ExerciseLibrary = () => {
                         rel="noreferrer" 
                         className="text-primary-600 hover:underline inline-flex items-center gap-2"
                       >
-                        Xem video trên YouTube →
+                        Xem video  →
                       </a>
                     </div>
                   ) : null}

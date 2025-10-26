@@ -249,7 +249,159 @@ const ExerciseManagement = () => {
     return null;
   };
 
- 
+  const loadComments = useCallback(async (exerciseId: string) => {
+    try {
+      setLoadingComments(true);
+      const res = await api.get(`/admin/exercises/${exerciseId}/comments`);
+      setComments(res.data.data || []);
+    } catch (err: unknown) {
+      console.error('Error loading comments:', err);
+      setComments([]);
+    } finally {
+      setLoadingComments(false);
+    }
+  }, []);
+
+  const handleSubmitComment = async (exerciseId: string) => {
+    if (!commentContent.trim()) {
+      toast.error('Vui lòng nhập nội dung comment');
+      return;
+    }
+    try {
+      const res = await api.post(`/admin/exercises/${exerciseId}/comments`, {
+        content: commentContent.trim(),
+      });
+      setComments((prev) => [...prev, res.data.data]);
+      setCommentContent('');
+      toast.success('Đã thêm comment thành công');
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm comment';
+      toast.error(message);
+    }
+  };
+
+  const handleSubmitReply = async (exerciseId: string, parentCommentId: string) => {
+    const replyText = replyContent[parentCommentId];
+    if (!replyText || !replyText.trim()) {
+      toast.error('Vui lòng nhập nội dung phản hồi');
+      return;
+    }
+    try {
+      const res = await api.post(`/admin/exercises/${exerciseId}/comments`, {
+        content: replyText.trim(),
+        parentCommentId,
+      });
+      setComments((prev) =>
+        prev.map((comment) => {
+          if (comment._id === parentCommentId) {
+            return {
+              ...comment,
+              replies: [...comment.replies, res.data.data],
+            };
+          }
+          return comment;
+        })
+      );
+      setReplyContent((prev) => {
+        const newContent = { ...prev };
+        delete newContent[parentCommentId];
+        return newContent;
+      });
+      setReplyingTo(null);
+      toast.success('Đã thêm phản hồi thành công');
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm phản hồi';
+      toast.error(message);
+    }
+  };
+
+  const handleDeleteComment = async (exerciseId: string, commentId: string) => {
+    if (!confirm('Bạn có chắc muốn xóa comment này?')) return;
+    try {
+      await api.delete(`/admin/exercises/${exerciseId}/comments/${commentId}`);
+      setComments((prev) => {
+        const commentIndex = prev.findIndex((c) => c._id === commentId);
+        if (commentIndex !== -1) {
+          return prev.filter((c) => c._id !== commentId);
+        }
+        return prev.map((comment) => ({
+          ...comment,
+          replies: comment.replies.filter((r) => r._id !== commentId),
+        }));
+      });
+      toast.success('Đã xóa comment thành công');
+    } catch (err: unknown) {
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa comment';
+      toast.error(message);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Quản lý bài tập</h2>
+        <p className="text-gray-600">Tạo và quản lý các bài tập luyện</p>
+      </div>
+
+      <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="flex justify-between items-center gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Tìm kiếm bài tập..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+          <button
+            onClick={() => {
+              setShowForm(true);
+              setEditing(null);
+              resetForm();
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all"
+          >
+            <Plus className="h-5 w-5" />
+            Thêm bài tập
+          </button>
+        </div>
+      </div>
+
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h3 className="text-2xl font-bold mb-4">{editing ? 'Chỉnh sửa bài tập' : 'Thêm bài tập mới'}</h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tên bài tập *</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    required
+                  />
+                  {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả</label>
                   <div className="bg-white border border-gray-300 rounded-lg p-3">

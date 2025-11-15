@@ -66,7 +66,6 @@ const ExerciseLibrary = () => {
   const getYouTubeEmbedUrl = (url: string): string | null => {
     if (!url) return null;
     // Trích xuất ID video từ nhiều định dạng URL YouTube
-    // Hỗ trợ URL có tham số truy vấn như &list=, &start_radio=, v.v.
     const patterns = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
       /youtube\.com\/watch\?.*[&?]v=([^&\n?#]+)/,
@@ -154,18 +153,18 @@ const ExerciseLibrary = () => {
     try {
       setErrors({});
       const newErrors: Record<string, string> = {};
-      if (!formData.name.trim()) newErrors.name = 'Vui lòng nhập tên bài tập';
+      if (!formData.name.trim()) newErrors.name = 'Vui lòng nhập tên bài tập:';
       const hasText = editorState.getCurrentContent().hasText();
-      if (!hasText) newErrors.description = 'Vui lòng nhập mô tả';
+      if (!hasText) newErrors.description = 'Vui lòng nhập mô tả:';
       const duration = Number(formData.durationMinutes);
       const calories = Number(formData.caloriesBurned);
       if (Number.isNaN(duration) || duration <= 0) newErrors.durationMinutes = 'Thời gian phải > 0';
-      if (Number.isNaN(calories) || calories < 0) newErrors.caloriesBurned = 'Calo không hợp lệ';
+      if (Number.isNaN(calories) || calories < 0) newErrors.caloriesBurned = 'Calo không hợp lệ!';
       const youtube = formData.videoUrl.trim();
       if (youtube) {
         // Cho phép các query parameters sau video ID (như &list=, &start_radio=, etc.)
         const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/i;
-        if (!ytRegex.test(youtube)) newErrors.videoUrl = 'Link YouTube không hợp lệ';
+        if (!ytRegex.test(youtube)) newErrors.videoUrl = 'Link video không hợp lệ!';
       }
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
@@ -184,10 +183,10 @@ const ExerciseLibrary = () => {
       };
       if (editing) {
         await api.put(`/user/exercises/${editing._id}`, payload);
-        toast.success('Cập nhật bài tập thành công');
+        toast.success('Cập nhật bài tập thành công.');
       } else {
         await api.post('/user/exercises', payload);
-        toast.success('Tạo bài tập thành công');
+        toast.success('Tạo bài tập thành công.');
       }
       setShowForm(false);
       setEditing(null);
@@ -206,7 +205,7 @@ const ExerciseLibrary = () => {
 
   const handleEdit = (ex: ExerciseItem) => {
     if (ex.isCommon) {
-      toast.error('Bài tập chung không thể chỉnh sửa');
+      toast.error('Bài tập chung không thể chỉnh sửa.');
       return;
     }
     setEditing(ex);
@@ -230,16 +229,16 @@ const ExerciseLibrary = () => {
 
   const handleDelete = async (id: string, isCommon: boolean) => {
     if (isCommon) {
-      toast.error('Bài tập chung không thể xóa');
+      toast.error('Bài tập chung không thể xóa.');
       return;
     }
     if (!confirm('Bạn có chắc muốn xóa bài tập này?')) return;
     try {
       await api.delete(`/user/exercises/${id}`);
-      toast.success('Xóa bài tập thành công');
+      toast.success('Xóa bài tập thành công.');
       load();
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa bài tập';
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa bài tập.';
       toast.error(message);
     }
   };
@@ -260,7 +259,7 @@ const ExerciseLibrary = () => {
 
   const handleSubmitComment = async (exerciseId: string) => {
     if (!commentContent.trim()) {
-      toast.error('Vui lòng nhập nội dung bình luận');
+      toast.error('Vui lòng nhập nội dung bình luận.');
       return;
     }
     try {
@@ -269,9 +268,9 @@ const ExerciseLibrary = () => {
       });
       setComments((prev) => [...prev, res.data.data]);
       setCommentContent('');
-      toast.success('Đã thêm bình luận thành công');
+      toast.success('Đã thêm bình luận thành công!');
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm comment';
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm comment.';
       toast.error(message);
     }
   };
@@ -307,7 +306,7 @@ const ExerciseLibrary = () => {
       setReplyingTo(null);
       toast.success('Đã thêm phản hồi thành công!');
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm phản hồi';
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm phản hồi!';
       toast.error(message);
     }
   };
@@ -332,7 +331,7 @@ const ExerciseLibrary = () => {
       });
       toast.success('Đã xóa comment thành công!');
     } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa comment';
+      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa comment!';
       toast.error(message);
     }
   };
@@ -345,10 +344,10 @@ const ExerciseLibrary = () => {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Vừa xong';
-    if (diffMins < 60) return `${diffMins} phút trước`;
-    if (diffHours < 24) return `${diffHours} giờ trước`;
-    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffMins < 1) return 'Vừa xong.';
+    if (diffMins < 60) return `${diffMins} Phút trước.`;
+    if (diffHours < 24) return `${diffHours} Giờ trước.`;
+    if (diffDays < 7) return `${diffDays} Ngày trước.`;
     return date.toLocaleDateString('vi-VN');
   };
 
@@ -534,9 +533,9 @@ const ExerciseLibrary = () => {
                     onChange={(e) => setFormData({ ...formData, difficulty: e.target.value as 'basic' | 'intermediate' | 'advanced' })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   >
-                    <option value="basic">Basic</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
+                    <option value="basic">Cơ bản</option>
+                    <option value="intermediate">Trung bình</option>
+                    <option value="advanced">Khó</option>
                   </select>
                 </div>
 

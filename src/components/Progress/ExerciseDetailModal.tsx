@@ -316,7 +316,7 @@ const ExerciseDetailModal = ({ exercise, date, exerciseIndex, onClose, onExercis
         try {
           playerRef.current.destroy();
         } catch (err) {
-          console.error('Error destroying player:', err);
+          console.error('Error deleting player:', err);
         }
         playerRef.current = null;
       }
@@ -338,7 +338,7 @@ const ExerciseDetailModal = ({ exercise, date, exerciseIndex, onClose, onExercis
 
   const handleSubmitComment = async (exerciseId: string) => {
     if (!commentContent.trim()) {
-      toast.error('Vui lòng nhập nội dung comment');
+      toast.error('Vui lòng nhập nội dung comment video');
       return;
     }
     try {
@@ -347,7 +347,7 @@ const ExerciseDetailModal = ({ exercise, date, exerciseIndex, onClose, onExercis
       });
       setComments((prev) => [...prev, res.data.data]);
       setCommentContent('');
-      toast.success('Đã thêm comment thành công');
+      toast.success('Thêm comment thành công');
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm comment';
       toast.error(message);

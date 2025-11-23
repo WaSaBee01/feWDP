@@ -121,9 +121,9 @@ const DayCard = ({
         </div>
       </div>
 
-      {/* Content */}
+      
       <div className="p-2.5 space-y-2.5 max-h-[500px] overflow-y-auto">
-        {/* Meals */}
+        
         {entry && entry.meals.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -242,7 +242,7 @@ const DayCard = ({
           </div>
         )}
 
-        {/* Exercises */}
+        
         {entry && entry.exercises.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -362,7 +362,7 @@ const DayCard = ({
         )}
 
         {(!entry || (entry.meals.length === 0 && entry.exercises.length === 0)) && (
-          <div className="text-center text-gray-400 text-xs py-8">Chưa có dữ liệu</div>
+          <div className="text-center text-gray-400 text-xs py-8">Không có dữ liệu</div>
         )}
       </div>
     </div>

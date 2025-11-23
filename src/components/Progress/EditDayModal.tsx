@@ -89,7 +89,7 @@ const EditDayModal = ({
         <div className="p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-2xl font-bold">
-              Chỉnh sửa ngày {formatDate(selectedDate)}
+              Chọn lại ngày {formatDate(selectedDate)}
             </h3>
             <button
               onClick={onClose}
@@ -103,7 +103,7 @@ const EditDayModal = ({
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-700">
                 ⚠️ Không thể chỉnh sửa progress cho ngày trong quá khứ. Vui lòng
-                chọn bây giờ hoặc tương lai.
+                chọn bây giờ hoặc những ngày trong tương lai.
               </p>
             </div>
           )}

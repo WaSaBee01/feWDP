@@ -19,22 +19,24 @@ interface PlanItem {
     caloriesOut: number;
   };
 }
+
+interface PlanItemExercise { time: string; exercise: string }
 interface Meal { _id: string; name: string; calories: number; carbs: number; protein: number; fat: number }
 interface Exercise { _id: string; name: string; caloriesBurned: number }
 interface PlanItemMeal { time: string; meal: string }
-interface PlanItemExercise { time: string; exercise: string }
 
 const PlanLibrary = () => {
   const { user } = useAuth();
   const [filterIsCommon, setFilterIsCommon] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<PlanItem | null>(null);
   const [viewingItem, setViewingItem] = useState<PlanItem | null>(null);
   const [items, setItems] = useState<PlanItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
   const [meals, setMeals] = useState<Meal[]>([]);
   const [exercises, setExercises] = useState<Exercise[]>([]);
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -64,15 +66,15 @@ const PlanLibrary = () => {
       if (search) params.search = search;
       if (filterIsCommon !== 'all') params.isCommon = filterIsCommon;
       const [plansRes, mealsRes, exRes] = await Promise.all([
-        api.get('/user/plans', { params }),
         api.get('/user/meals'),
         api.get('/user/exercises'),
+        api.get('/user/plans', { params }),
       ]);
       setItems(plansRes.data.data);
       setMeals(mealsRes.data.data);
       setExercises(exRes.data.data);
     } catch {
-      toast.error('Không thể tải danh sách kế hoạch. Vui lòng thử lại.');
+      toast.error('Không thể tải danh sách. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -87,10 +89,10 @@ const PlanLibrary = () => {
       toast.error('Không thể xóa kế hoạch này. Hãy thử lại');
       return;
     }
-    if (!confirm('Bạn có chắc muốn xóa kế hoạch này?')) return;
+    if (!confirm('Bạn có muốn xóa kế hoạch này?')) return;
     try {
       await api.delete(`/user/plans/${id}`);
-      toast.success('Xóa kế hoạch thành công kế hoạch');
+      toast.success('Xóa thành công kế hoạch');
       load();
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa kế hoạch';
@@ -102,8 +104,8 @@ const PlanLibrary = () => {
 
   const totalsPreview = useMemo(() => {
     let caloriesIn = 0, carbs = 0, protein = 0, fat = 0, caloriesOut = 0;
-    const mealMap = new Map(meals.map(m => [m._id, m]));
     const exMap = new Map(exercises.map(e => [e._id, e]));
+    const mealMap = new Map(meals.map(m => [m._id, m]));
     formData.meals.forEach(m => {
       const meal = mealMap.get(m.meal);
       if (meal) { caloriesIn += meal.calories; carbs += meal.carbs; protein += meal.protein; fat += meal.fat; }
@@ -115,17 +117,17 @@ const PlanLibrary = () => {
     return { caloriesIn, carbs, protein, fat, caloriesOut };
   }, [formData.meals, formData.exercises, meals, exercises]);
 
-  const addMealRow = () => setFormData(prev => ({ ...prev, meals: [...prev.meals, { time: '', meal: '' }] }));
   const addExerciseRow = () => setFormData(prev => ({ ...prev, exercises: [...prev.exercises, { time: '', exercise: '' }] }));
+  const addMealRow = () => setFormData(prev => ({ ...prev, meals: [...prev.meals, { time: '', meal: '' }] }));
   const removeMealRow = (idx: number) => setFormData(prev => ({ ...prev, meals: prev.meals.filter((_, i) => i !== idx) }));
   const removeExerciseRow = (idx: number) => setFormData(prev => ({ ...prev, exercises: prev.exercises.filter((_, i) => i !== idx) }));
 
   const startCreate = () => { setShowForm(true); setEditing(null); setFormData({ name: '', description: '', meals: [], exercises: [] }); };
   
   const startAICreate = () => {
-    setShowAIDialog(true);
     setAiPrompt('');
     setAiGeneratedPlan(null);
+    setShowAIDialog(true);
   };
 
   const samplePrompts = [
@@ -144,9 +146,9 @@ const PlanLibrary = () => {
       
       if (res.data.success) {
         toast.success('Đã tạo kế hoạch thành công!');
-        setShowAIDialog(false);
         setAiPrompt('');
         setAiGeneratedPlan(null);
+        setShowAIDialog(false);
         load();
       } else {
         toast.error('Không thể tạo kế hoạch. Hãy thử lại');
@@ -160,7 +162,7 @@ const PlanLibrary = () => {
   };
   const handleAIGenerate = async () => {
     if (!aiPrompt.trim()) {
-      toast.error('Bạn vui lòng nhập yêu cầu');
+      toast.error('Vui lòng nhập yêu cầu');
       return;
     }
 
@@ -168,7 +170,7 @@ const PlanLibrary = () => {
       setGeneratingAI(true);
       // Increase timeout to 3 minutes for AI generation
       const res = await api.post('/user/plans/ai/generate', { prompt: aiPrompt }, {
-        timeout: 180000, // 3 minutes
+        timeout: 180000, 
       });
       
       if (res.data.success && res.data.data) {

@@ -19,9 +19,10 @@ interface Meal {
 const Nutrition = () => {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
   const [filterGoal, setFilterGoal] = useState<string>('all');
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
+  const [search, setSearch] = useState('');
+
 
   useEffect(() => {
     loadMeals();
@@ -37,7 +38,7 @@ const Nutrition = () => {
       const response = await api.get('/meals', { params });
       setMeals(response.data.data);
     } catch (error: any) {
-      toast.error('Không thể tải danh sách ');
+      toast.error('Không thể tải danh sách. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }

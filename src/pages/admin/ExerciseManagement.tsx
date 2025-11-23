@@ -2,13 +2,13 @@ import type { DraftHandleValue } from 'draft-js';
 import { ContentState, convertFromHTML, convertToRaw, Editor, EditorState, RichUtils } from 'draft-js';
 import 'draft-js/dist/Draft.css';
 import draftToHtml from 'draftjs-to-html';
-import { Edit2, MessageCircle, Plus, Reply, Search, Trash2 } from 'lucide-react';
+import { Eye, MessageCircle, Plus, Reply, Search, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 
-interface ExerciseItem {
+interface Exercise {
   _id: string;
   name: string;
   description?: string;
@@ -16,7 +16,6 @@ interface ExerciseItem {
   caloriesBurned: number;
   videoUrl?: string;
   difficulty: 'basic' | 'intermediate' | 'advanced';
-  isCommon: boolean;
 }
 
 interface CommentUser {
@@ -43,18 +42,17 @@ interface Comment {
   replies: CommentReply[];
 }
 
-const ExerciseLibrary = () => {
-  const [items, setItems] = useState<ExerciseItem[]>([]);
+const ExerciseManagement = () => {
+  const [items, setItems] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
-  const [filterIsCommon, setFilterIsCommon] = useState<string>('all');
   const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<ExerciseItem | null>(null);
-  const [viewingItem, setViewingItem] = useState<ExerciseItem | null>(null);
+  const [editing, setEditing] = useState<Exercise | null>(null);
+  const [search, setSearch] = useState('');
   const [editorState, setEditorState] = useState<EditorState>(() => EditorState.createEmpty());
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const { user } = useAuth();
+  const [viewingItem, setViewingItem] = useState<Exercise | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [commentContent, setCommentContent] = useState('');
@@ -62,25 +60,7 @@ const ExerciseLibrary = () => {
   const [replyContent, setReplyContent] = useState<Record<string, string>>({});
 
   const stripHtml = (html: string): string => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-
-  const getYouTubeEmbedUrl = (url: string): string | null => {
-    if (!url) return null;
-    // Trích xuất ID video từ nhiều định dạng URL YouTube
-    // Hỗ trợ URL có tham số truy vấn như &list=, &start_radio=, v.v.
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-      /youtube\.com\/watch\?.*[&?]v=([^&\n?#]+)/,
-    ];
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match && match[1]) {
-        // Chỉ lấy video ID, bỏ qua các query parameters khác
-        return `https://www.youtube.com/embed/${match[1]}`;
-      }
-    }
-    return null;
-  };
-
+  
   const handleKeyCommand = (command: string, state: EditorState): DraftHandleValue => {
     const newState = RichUtils.handleKeyCommand(state, command);
     if (newState) {
@@ -99,7 +79,13 @@ const ExerciseLibrary = () => {
   };
 
   const toggleBlock = (
-    type: 'header-one' | 'header-two' | 'unordered-list-item' | 'ordered-list-item' | 'blockquote' | 'code-block'
+    type:
+      | 'header-one'
+      | 'header-two'
+      | 'unordered-list-item'
+      | 'ordered-list-item'
+      | 'blockquote'
+      | 'code-block'
   ) => {
     setEditorState(RichUtils.toggleBlockType(editorState, type));
   };
@@ -133,17 +119,16 @@ const ExerciseLibrary = () => {
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const params: Record<string, string> = {};
+      const params: Record<string, string> = { isCommon: 'true' };
       if (search) params.search = search;
-      if (filterIsCommon !== 'all') params.isCommon = filterIsCommon;
-      const res = await api.get('/user/exercises', { params });
+      const res = await api.get('/admin/exercises', { params });
       setItems(res.data.data);
     } catch {
-      toast.error('Danh sách bài tập không tải được');
+      toast.error('Không thể tải danh sách bài tập');
     } finally {
       setLoading(false);
     }
-  }, [search, filterIsCommon]);
+  }, [search]);
 
   useEffect(() => {
     load();
@@ -153,6 +138,8 @@ const ExerciseLibrary = () => {
     e.preventDefault();
     try {
       setErrors({});
+
+      // Client validations
       const newErrors: Record<string, string> = {};
       if (!formData.name.trim()) newErrors.name = 'Vui lòng nhập tên bài tập';
       const hasText = editorState.getCurrentContent().hasText();
@@ -163,7 +150,7 @@ const ExerciseLibrary = () => {
       if (Number.isNaN(calories) || calories < 0) newErrors.caloriesBurned = 'Calo không hợp lệ';
       const youtube = formData.videoUrl.trim();
       if (youtube) {
-        // Cho phép các query parameters sau video ID (như &list=, &start_radio=, etc.)
+        // Cho phép query parameters sau video ID (như &list=, &start_radio=, etc.)
         const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/i;
         if (!ytRegex.test(youtube)) newErrors.videoUrl = 'Link YouTube không hợp lệ';
       }
@@ -183,11 +170,11 @@ const ExerciseLibrary = () => {
         difficulty: formData.difficulty,
       };
       if (editing) {
-        await api.put(`/user/exercises/${editing._id}`, payload);
-        toast.success('Cập nhật bài tập thành công');
+        await api.put(`/admin/exercises/${editing._id}`, payload);
+        toast.success('Update successfully');
       } else {
-        await api.post('/user/exercises', payload);
-        toast.success('Tạo bài tập thành công');
+        await api.post('/admin/exercises', payload);
+        toast.success('Create successfully');
       }
       setShowForm(false);
       setEditing(null);
@@ -204,11 +191,7 @@ const ExerciseLibrary = () => {
     }
   };
 
-  const handleEdit = (ex: ExerciseItem) => {
-    if (ex.isCommon) {
-      toast.error('Bài tập chung không thể chỉnh sửa');
-      return;
-    }
+  const handleEdit = (ex: Exercise) => {
     setEditing(ex);
     setFormData({
       name: ex.name,
@@ -228,30 +211,51 @@ const ExerciseLibrary = () => {
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string, isCommon: boolean) => {
-    if (isCommon) {
-      toast.error('Bài tập chung không thể xóa');
-      return;
-    }
+  const handleDelete = async (id: string) => {
     if (!confirm('Bạn có chắc muốn xóa bài tập này?')) return;
     try {
-      await api.delete(`/user/exercises/${id}`);
-      toast.success('Xóa bài tập thành công');
+      await api.delete(`/admin/exercises/${id}`);
+      toast.success('Delete Sucessfull');
       load();
-    } catch (err: unknown) {
-      const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa bài tập';
-      toast.error(message);
+    } catch {
+      toast.error('Cannot Sucessfull');
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      durationMinutes: '',
+      caloriesBurned: '',
+      videoUrl: '',
+      difficulty: 'basic',
+    });
+    setEditorState(EditorState.createEmpty());
+  };
+
+  const getYouTubeEmbedUrl = (url: string): string | null => {
+    if (!url) return null;
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+      /youtube\.com\/watch\?.*[&?]v=([^&\n?#]+)/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return `https://www.youtube.com/embed/${match[1]}`;
+      }
+    }
+    return null;
   };
 
   const loadComments = useCallback(async (exerciseId: string) => {
     try {
       setLoadingComments(true);
-      const res = await api.get(`/user/exercises/${exerciseId}/comments`);
+      const res = await api.get(`/admin/exercises/${exerciseId}/comments`);
       setComments(res.data.data || []);
     } catch (err: unknown) {
-      console.error('Lỗi tải bình luận:', err);
-      // Không hiển thị thông báo lỗi, chỉ cần đặt mảng trống
+      console.error('Error loading comments:', err);
       setComments([]);
     } finally {
       setLoadingComments(false);
@@ -260,16 +264,16 @@ const ExerciseLibrary = () => {
 
   const handleSubmitComment = async (exerciseId: string) => {
     if (!commentContent.trim()) {
-      toast.error('Vui lòng nhập nội dung bình luận');
+      toast.error('Vui lòng nhập nội dung comment');
       return;
     }
     try {
-      const res = await api.post(`/user/exercises/${exerciseId}/comments`, {
+      const res = await api.post(`/admin/exercises/${exerciseId}/comments`, {
         content: commentContent.trim(),
       });
       setComments((prev) => [...prev, res.data.data]);
       setCommentContent('');
-      toast.success('Đã thêm bình luận thành công');
+      toast.success('Đã thêm comment thành công');
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm comment';
       toast.error(message);
@@ -279,15 +283,14 @@ const ExerciseLibrary = () => {
   const handleSubmitReply = async (exerciseId: string, parentCommentId: string) => {
     const replyText = replyContent[parentCommentId];
     if (!replyText || !replyText.trim()) {
-      toast.error('Vui lòng nhập nội dung phản hồi:');
+      toast.error('Vui lòng nhập nội dung phản hồi');
       return;
     }
     try {
-      const res = await api.post(`/user/exercises/${exerciseId}/comments`, {
+      const res = await api.post(`/admin/exercises/${exerciseId}/comments`, {
         content: replyText.trim(),
         parentCommentId,
       });
-      // Cập nhật bình luận để thêm trả lời cho bình luận gốc
       setComments((prev) =>
         prev.map((comment) => {
           if (comment._id === parentCommentId) {
@@ -305,7 +308,7 @@ const ExerciseLibrary = () => {
         return newContent;
       });
       setReplyingTo(null);
-      toast.success('Đã thêm phản hồi thành công!');
+      toast.success('Đã thêm phản hồi thành công');
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể thêm phản hồi';
       toast.error(message);
@@ -315,22 +318,18 @@ const ExerciseLibrary = () => {
   const handleDeleteComment = async (exerciseId: string, commentId: string) => {
     if (!confirm('Bạn có chắc muốn xóa comment này?')) return;
     try {
-      await api.delete(`/user/exercises/${exerciseId}/comments/${commentId}`);
-      // Xóa bình luận hoặc trả lời khỏi trạng thái
+      await api.delete(`/admin/exercises/${exerciseId}/comments/${commentId}`);
       setComments((prev) => {
-        // Kiểm tra xem đó có phải là bình luận cấp cao nhất không
         const commentIndex = prev.findIndex((c) => c._id === commentId);
         if (commentIndex !== -1) {
-          // Đây là bình luận cấp cao nhất, hãy xóa nó đi
           return prev.filter((c) => c._id !== commentId);
         }
-        // Đây là một câu trả lời, hãy xóa nó khỏi bình luận gốc
         return prev.map((comment) => ({
           ...comment,
           replies: comment.replies.filter((r) => r._id !== commentId),
         }));
       });
-      toast.success('Đã xóa comment thành công!');
+      toast.success('Đã xóa comment thành công');
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } }).response?.data?.message || 'Không thể xóa comment';
       toast.error(message);
@@ -352,50 +351,25 @@ const ExerciseLibrary = () => {
     return date.toLocaleDateString('vi-VN');
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      durationMinutes: '',
-      caloriesBurned: '',
-      videoUrl: '',
-      difficulty: 'basic',
-    });
-    setEditorState(EditorState.createEmpty());
-  };
-
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Thư viện bài tập</h2>
-        <p className="text-gray-600">Bài tập dùng chung và bài tập bạn đã tạo</p>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Quản lý bài tập</h2>
+        <p className="text-gray-600">Tạo và quản lý các bài tập luyện</p>
       </div>
 
       <div className="bg-white rounded-lg shadow p-4 mb-6">
-        <div className="flex gap-4">
+        <div className="flex justify-between items-center gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && load()}
               placeholder="Tìm kiếm bài tập..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
-          <select
-            value={filterIsCommon}
-            onChange={(e) => setFilterIsCommon(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          >
-            <option value="all">Tất cả</option>
-            <option value="true">Dùng chung</option>
-            <option value="false">Của tôi</option>
-          </select>
-          <button onClick={load} className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all">
-            Tìm kiếm
-          </button>
           <button
             onClick={() => {
               setShowForm(true);
@@ -432,48 +406,22 @@ const ExerciseLibrary = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Mô tả</label>
                   <div className="bg-white border border-gray-300 rounded-lg p-3">
                     <div className="flex flex-wrap gap-2 mb-2">
-                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleInline('BOLD')}>
-                        B
-                      </button>
-                      <button type="button" className="px-2 py-1 border rounded italic" onClick={() => toggleInline('ITALIC')}>
-                        I
-                      </button>
-                      <button type="button" className="px-2 py-1 border rounded underline" onClick={() => toggleInline('UNDERLINE')}>
-                        U
-                      </button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleInline('BOLD')}>B</button>
+                      <button type="button" className="px-2 py-1 border rounded italic" onClick={() => toggleInline('ITALIC')}>I</button>
+                      <button type="button" className="px-2 py-1 border rounded underline" onClick={() => toggleInline('UNDERLINE')}>U</button>
                       <span className="mx-1 text-gray-300">|</span>
-                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleBlock('header-one')}>
-                        H1
-                      </button>
-                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleBlock('header-two')}>
-                        H2
-                      </button>
-                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleBlock('unordered-list-item')}>
-                        • List
-                      </button>
-                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleBlock('ordered-list-item')}>
-                        1. List
-                      </button>
-                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleBlock('blockquote')}>
-                        &gt;
-                      </button>
-                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleInline('CODE')}>
-                        {`</>`}
-                      </button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleBlock('header-one')}>H1</button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleBlock('header-two')}>H2</button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleBlock('unordered-list-item')}>• List</button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleBlock('ordered-list-item')}>1. List</button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleBlock('blockquote')}>&gt;</button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={() => toggleInline('CODE')}>{`</>`}</button>
                       <span className="mx-1 text-gray-300">|</span>
-                      <button type="button" className="px-2 py-1 border rounded" onClick={applyLink}>
-                        Link
-                      </button>
-                      <button type="button" className="px-2 py-1 border rounded" onClick={removeLink}>
-                        Unlink
-                      </button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={applyLink}>Link</button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={removeLink}>Unlink</button>
                       <span className="mx-1 text-gray-300">|</span>
-                      <button type="button" className="px-2 py-1 border rounded" onClick={() => setEditorState(EditorState.undo(editorState))}>
-                        Undo
-                      </button>
-                      <button type="button" className="px-2 py-1 border rounded" onClick={() => setEditorState(EditorState.redo(editorState))}>
-                        Redo
-                      </button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={() => setEditorState(EditorState.undo(editorState))}>Undo</button>
+                      <button type="button" className="px-2 py-1 border rounded" onClick={() => setEditorState(EditorState.redo(editorState))}>Redo</button>
                     </div>
                     <div className="min-h-[200px] px-3 py-2 border rounded">
                       <Editor
@@ -516,7 +464,7 @@ const ExerciseLibrary = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Video hướng dẫn</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Video hướng dẫn (YouTube)</label>
                   <input
                     type="url"
                     value={formData.videoUrl}
@@ -569,31 +517,21 @@ const ExerciseLibrary = () => {
         </div>
       ) : items.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow">
-          <p className="text-gray-600">Chưa có bài tập</p>
+          <p className="text-gray-600">Chưa có bài tập nào</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {items.map((ex) => (
-            <div 
-              key={ex._id} 
-              className={`bg-white rounded-lg shadow hover:shadow-lg transition-all ${ex.isCommon ? 'cursor-pointer' : ''}`}
-              onClick={() => {
-                if (ex.isCommon) {
-                  setViewingItem(ex);
-                  loadComments(ex._id);
-                }
-              }}
-            >
+            <div key={ex._id} className="bg-white rounded-lg shadow hover:shadow-lg transition-all">
               <div className="p-4">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-lg font-bold text-gray-900">{ex.name}</h3>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded capitalize">{ex.difficulty}</span>
-                    {ex.isCommon && <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">Dùng chung</span>}
-                  </div>
+                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded capitalize">{ex.difficulty}</span>
                 </div>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{stripHtml(ex.description || '')}</p>
-                <div className="grid grid-cols-2 gap-2 text-sm mb-2">
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                  {stripHtml(ex.description || '')}
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-sm mb-4">
                   <div>
                     <span className="text-gray-600">Thời gian:</span> <span className="font-medium">{ex.durationMinutes} phút</span>
                   </div>
@@ -602,27 +540,35 @@ const ExerciseLibrary = () => {
                   </div>
                 </div>
                 {ex.videoUrl && (
-                  <a href={ex.videoUrl} target="_blank" rel="noreferrer" className="text-primary-600 text-sm hover:underline" onClick={(e) => e.stopPropagation()}>
+                  <a href={ex.videoUrl} target="_blank" rel="noreferrer" className="text-primary-600 text-sm hover:underline">
                     Xem video hướng dẫn
                   </a>
                 )}
-                {!ex.isCommon && (
-                  <div className="flex gap-2 mt-4" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => handleEdit(ex)} className="flex-1 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm flex items-center justify-center gap-1">
-                      <Edit2 className="h-4 w-4" />
-                      Sửa
-                    </button>
-                    <button onClick={() => handleDelete(ex._id, ex.isCommon)} className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => {
+                      setViewingItem(ex);
+                      loadComments(ex._id);
+                    }}
+                    className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm flex items-center gap-1"
+                  >
+                    <Eye className="h-4 w-4" />
+                    Xem
+                  </button>
+                  <button onClick={() => handleEdit(ex)} className="flex-1 px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm">
+                    Chỉnh sửa
+                  </button>
+                  <button onClick={() => handleDelete(ex._id)} className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
+      {/* View Dialog with Comments */}
       {viewingItem && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setViewingItem(null)}>
           <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -666,7 +612,7 @@ const ExerciseLibrary = () => {
                         rel="noreferrer" 
                         className="text-primary-600 hover:underline inline-flex items-center gap-2 mt-2 text-sm"
                       >
-                        Xem video →
+                        Xem trên YouTube →
                       </a>
                     </div>
                   ) : viewingItem.videoUrl ? (
@@ -677,7 +623,7 @@ const ExerciseLibrary = () => {
                         rel="noreferrer" 
                         className="text-primary-600 hover:underline inline-flex items-center gap-2"
                       >
-                        Xem video  →
+                        Xem video trên YouTube →
                       </a>
                     </div>
                   ) : null}
@@ -685,7 +631,6 @@ const ExerciseLibrary = () => {
                   {/* Title và badges */}
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded capitalize">{viewingItem.difficulty}</span>
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">Dùng chung</span>
                   </div>
 
                   {/* Description */}
@@ -862,4 +807,6 @@ const ExerciseLibrary = () => {
   );
 };
 
-export default ExerciseLibrary;
+export default ExerciseManagement;
+
+

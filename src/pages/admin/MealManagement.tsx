@@ -178,10 +178,10 @@ const MealManagement = () => {
       
       if (editingMeal) {
         await api.put(`/admin/meals/${editingMeal._id}`, payload);
-        toast.success('Cập nhật món ăn thành công');
+        toast.success('Update food successfully !');
       } else {
         await api.post('/admin/meals', payload);
-        toast.success('Tạo món ăn thành công');
+        toast.success('Create food successfully !');
       }
       
       setShowForm(false);

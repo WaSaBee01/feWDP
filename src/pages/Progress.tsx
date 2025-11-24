@@ -32,25 +32,26 @@ interface Exercise {
   difficulty?: 'basic' | 'intermediate' | 'advanced';
 }
 
-interface DailyPlan {
-  _id: string;
-  name: string;
-}
 
 interface WeeklyPlan {
   _id: string;
   name: string;
 }
 
-interface ProgressMeal {
-  time: string;
-  mealId: Meal | string;
-  completed: boolean;
+interface DailyPlan {
+  _id: string;
+  name: string;
 }
 
 interface ProgressExercise {
   time: string;
   exerciseId: Exercise | string;
+  completed: boolean;
+}
+
+interface ProgressMeal {
+  time: string;
+  mealId: Meal | string;
   completed: boolean;
 }
 
@@ -64,12 +65,12 @@ interface ProgressEntry {
 
 
 const Progress = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [entries, setEntries] = useState<ProgressEntry[]>([]);
-  const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showApplyPlan, setShowApplyPlan] = useState(false);
   const [showEditDay, setShowEditDay] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [entries, setEntries] = useState<ProgressEntry[]>([]);
+  const [loading, setLoading] = useState(false);
   const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
   const [weeklyPlans, setWeeklyPlans] = useState<WeeklyPlan[]>([]);
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -80,11 +81,11 @@ const Progress = () => {
   const [editExercises, setEditExercises] = useState<Array<{ time: string; exerciseId: string; completed: boolean }>>([]);
   const [editNotes, setEditNotes] = useState('');
 
-
-  const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [selectedExerciseDate, setSelectedExerciseDate] = useState<Date | null>(null);
   const [selectedExerciseIndex, setSelectedExerciseIndex] = useState<number | null>(null);
+  const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+
 
   const weekStart = useMemo(() => {
     const date = new Date(currentDate);
@@ -120,7 +121,7 @@ const Progress = () => {
       });
       setEntries(res.data.data);
     } catch {
-      toast.error('Không thể tải tiến trình !');
+      toast.error('Không thể tải tiến trình! Hãy thử lại.');
     } finally {
       setLoading(false);
     }
@@ -139,7 +140,7 @@ const Progress = () => {
       setMeals(mealsRes.data.data);
       setExercises(exRes.data.data);
     } catch {
-      toast.error('Không thể tải dữ liệu!');
+      toast.error('Không thể tải dữ liệu! Vui lòng thử lại.');
     }
   }, []);
 
@@ -160,11 +161,8 @@ const Progress = () => {
         });
         
         if (needsUpdate) {
-          // Update editMeals with correct IDs now that meals list is available
           const updatedMeals = editMeals.map((editMeal) => {
-            // If mealId is empty or not found in meals list, try to find it
             if (!editMeal.mealId || !meals.some((m) => String(m._id) === editMeal.mealId)) {
-              // Find the corresponding meal from entry
               const entryMeal = entry.meals.find((em) => em.time === editMeal.time);
               if (entryMeal) {
                 let mealIdValue = '';
@@ -179,7 +177,6 @@ const Progress = () => {
                   return { ...editMeal, mealId: mealIdValue };
                 }
                 
-                // Try matching by name if ID doesn't match
                 if (typeof entryMeal.mealId === 'object' && entryMeal.mealId !== null && 'name' in entryMeal.mealId) {
                   const foundMeal = meals.find((m) => m.name === (entryMeal.mealId as Meal).name);
                   if (foundMeal) {
@@ -198,13 +195,13 @@ const Progress = () => {
   }, [meals.length, showEditDay, selectedDate]);
 
   const getDateKey = (date: Date): string => {
-    const localYear = date.getFullYear();
-    const localMonth = date.getMonth();
     const localDay = date.getDate();
+    const localMonth = date.getMonth();
+    const localYear = date.getFullYear();
     const utcDate = new Date(Date.UTC(localYear, localMonth, localDay, 0, 0, 0, 0));
-    const year = utcDate.getUTCFullYear();
-    const month = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
     const day = String(utcDate.getUTCDate()).padStart(2, '0');
+    const month = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
+    const year = utcDate.getUTCFullYear();
     return `${year}-${month}-${day}`;
   };
 
@@ -222,9 +219,9 @@ const Progress = () => {
       } else {
         // Backend stores dates as UTC, extract UTC date components
         const entryDate = new Date(e.date);
-        const entryYear = entryDate.getUTCFullYear();
-        const entryMonth = String(entryDate.getUTCMonth() + 1).padStart(2, '0');
         const entryDay = String(entryDate.getUTCDate()).padStart(2, '0');
+        const entryMonth = String(entryDate.getUTCMonth() + 1).padStart(2, '0');
+        const entryYear = entryDate.getUTCFullYear();
         entryDateStr = `${entryYear}-${entryMonth}-${entryDay}`;
       }
       return entryDateStr === dateStr;
@@ -252,9 +249,9 @@ const Progress = () => {
         } else {
           // Backend stores dates as UTC, extract UTC date components
           const entryDate = new Date(e.date);
-          const entryYear = entryDate.getUTCFullYear();
-          const entryMonth = String(entryDate.getUTCMonth() + 1).padStart(2, '0');
           const entryDay = String(entryDate.getUTCDate()).padStart(2, '0');
+          const entryMonth = String(entryDate.getUTCMonth() + 1).padStart(2, '0');
+          const entryYear = entryDate.getUTCFullYear();
           entryDateStr = `${entryYear}-${entryMonth}-${entryDay}`;
         }
         return entryDateStr === dateStr;

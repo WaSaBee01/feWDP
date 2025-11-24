@@ -46,16 +46,15 @@ const WeeklyPlanLibrary = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [filterIsCommon, setFilterIsCommon] = useState<string>('all');
+  const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
+  const [formData, setFormData] = useState({ name: '', description: '', days: {} as Record<string, string> });
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<WeeklyPlanItem | null>(null);
   const [viewingItem, setViewingItem] = useState<WeeklyPlanItem | null>(null);
-  const [dailyPlans, setDailyPlans] = useState<DailyPlan[]>([]);
-  const [formData, setFormData] = useState({ name: '', description: '', days: {} as Record<string, string> });
-  
   // AI Plan Generation states
-  const [showAIDialog, setShowAIDialog] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
   const [generatingAI, setGeneratingAI] = useState(false);
+  const [showAIDialog, setShowAIDialog] = useState(false);
   const [aiGeneratedPlan, setAiGeneratedPlan] = useState<{
     name: string;
     description?: string;
@@ -87,7 +86,7 @@ const WeeklyPlanLibrary = () => {
       setItems(wps.data.data);
       setDailyPlans(dps.data.data);
     } catch {
-      toast.error('Không thể tải danh sách kế hoạch tuần. Hãy thử lại');
+      toast.error('Không thể tải danh sách kế hoạch. Hãy thử lại');
     } finally {
       setLoading(false);
     }
@@ -99,7 +98,7 @@ const WeeklyPlanLibrary = () => {
 
   const handleDelete = async (id: string, isCommon: boolean) => {
     if (isCommon) {
-      toast.error('Không thể xóa kế hoạch tuần dùng chung. Hãy thử lại');
+      toast.error('Không thể xóa kế hoạch dùng chung. Hãy thử lại');
       return;
     }
     if (!confirm('Bạn có chắc muốn xóa kế hoạch tuần này?')) return;
@@ -147,7 +146,7 @@ const WeeklyPlanLibrary = () => {
 
   const handleAIGenerate = async () => {
     if (!aiPrompt.trim()) {
-      toast.error('Bạn vui lòng nhập yêu cầu');
+      toast.error('Hãy vui lòng nhập yêu cầu');
       return;
     }
 
@@ -177,7 +176,27 @@ const WeeklyPlanLibrary = () => {
     }
   };
 
-  const handleAIAccept = async () => {
+  const startEdit = (wp: WeeklyPlanItem) => {
+    if (wp.isCommon) {
+      toast.error('Không thể chỉnh sửa kế hoạch tuần dùng chung');
+      return;
+    }
+    const daysData = wp.days || {};
+    const convertedDays: Record<string, string> = {};
+    Object.keys(daysData).forEach((key) => {
+      const dayValue = daysData[key as keyof typeof daysData];
+      if (typeof dayValue === 'string') {
+        convertedDays[key] = dayValue;
+      } else if (typeof dayValue === 'object' && dayValue !== null && '_id' in dayValue) {
+        convertedDays[key] = String((dayValue as DailyPlan)._id);
+      }
+    });
+    setShowForm(true);
+    setEditing(wp);
+    setFormData({ name: wp.name, description: stripHtml(wp.description), days: convertedDays });
+  };
+
+    const handleAIAccept = async () => {
     if (!aiGeneratedPlan) return;
 
     try {
@@ -200,26 +219,6 @@ const WeeklyPlanLibrary = () => {
       setAcceptingAI(false);
     }
   };
-  const startEdit = (wp: WeeklyPlanItem) => {
-    if (wp.isCommon) {
-      toast.error('Không thể chỉnh sửa kế hoạch tuần dùng chung');
-      return;
-    }
-    const daysData = wp.days || {};
-    const convertedDays: Record<string, string> = {};
-    Object.keys(daysData).forEach((key) => {
-      const dayValue = daysData[key as keyof typeof daysData];
-      if (typeof dayValue === 'string') {
-        convertedDays[key] = dayValue;
-      } else if (typeof dayValue === 'object' && dayValue !== null && '_id' in dayValue) {
-        convertedDays[key] = String((dayValue as DailyPlan)._id);
-      }
-    });
-    setShowForm(true);
-    setEditing(wp);
-    setFormData({ name: wp.name, description: stripHtml(wp.description), days: convertedDays });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {

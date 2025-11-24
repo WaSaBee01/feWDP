@@ -12,14 +12,15 @@ const Settings = () => {
   const [goal, setGoal] = useState<'weight_loss' | 'muscle_gain' | 'healthy_lifestyle'>('healthy_lifestyle');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
-  const [workoutDays, setWorkoutDays] = useState(3);
-  const [workoutDuration, setWorkoutDuration] = useState(60);
-  const [fitnessLevel, setFitnessLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
-  const [gender, setGender] = useState<'male' | 'female'>('male');
-  const [age, setAge] = useState<number | ''>('');
-  const [allergies, setAllergies] = useState<string>('');
   const [bmi, setBmi] = useState<number | null>(null);
   const [bmr, setBmr] = useState<number | null>(null);
+  const [workoutDays, setWorkoutDays] = useState(3);
+  const [workoutDuration, setWorkoutDuration] = useState(60);
+  const [age, setAge] = useState<number | ''>('');
+  const [allergies, setAllergies] = useState<string>('');
+  const [fitnessLevel, setFitnessLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
+  const [gender, setGender] = useState<'male' | 'female'>('male');
+
 
   // Load existing survey data
   useEffect(() => {
